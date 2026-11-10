@@ -1,0 +1,44 @@
+name: MojidSignalBot
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: mojidsignalbot
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - name: Queue the next run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run "${{ github.workflow }}" --ref "${{ github.ref_name }}" || true
+      - name: Run signal bot
+        env:
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+          VARS_JSON: ${{ toJSON(vars) }}
+        run: |
+          timeout 21000 uv run --with requests python -c "
+          import json, os, runpy
+          for raw in (os.environ['VARS_JSON'], os.environ['SECRETS_JSON']):
+              for k, v in json.loads(raw).items():
+                  os.environ.setdefault(k, str(v))
+          runpy.run_path('signal_bot.py', run_name='__main__')
+          " || true
+      - name: Save stats and settings
+        if: always()
+        run: |
+          git config user.name "signalbot"
+          git config user.email "signalbot@users.noreply.github.com"
+          git add expiry_stats.json settings.json 2>/dev/null || true
+          git diff --cached --quiet || (git commit -m "stats" && git pull --rebase --autostash && git push) || true
