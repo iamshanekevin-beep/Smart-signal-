@@ -25,7 +25,7 @@ pair (pole follows its FCB on the next candle).
 
 Auto-execution (optional, controlled from Telegram): FCB breakout (2m) and RSI
 reversal (1m) signals can be placed on IQ Option. Off by default, PRACTICE by
-default, stake 10-100, with a daily loss limit, a daily trade cap and a pause
+default, stake 1-100, with a daily loss limit, a daily trade cap and a pause
 after a losing streak. LIVE needs /live then /confirm_live. Settings persist in
 settings.json.
 
@@ -72,7 +72,7 @@ EXPIRY_BY_KIND = {"FCB": FCB_EXPIRY_MIN, "pole": POLE_EXPIRY_MIN}   # anything e
 # ---- auto-execution settings ----
 SETTINGS_FILE = os.environ.get("SETTINGS_FILE", "settings.json")
 EXEC_KINDS = ("FCB", "RSI reversal")         # only these are ever auto-executed
-STAKE_MIN, STAKE_MAX = 10, 100
+STAKE_MIN, STAKE_MAX = 1, 100
 MAX_DAILY_TRADES = int(os.environ.get("MAX_DAILY_TRADES", "20"))
 LOSS_STREAK_STOP = int(os.environ.get("LOSS_STREAK_STOP", "3"))
 DAILY_LOSS_STAKES = float(os.environ.get("DAILY_LOSS_STAKES", "5"))   # daily loss limit = stake x this
@@ -82,7 +82,9 @@ TG = f"https://api.telegram.org/bot{TOKEN}"
 KEYBOARD = {"keyboard": [
     [{"text": "/status"}, {"text": "/auto_on"}, {"text": "/auto_off"}],
     [{"text": "/practice"}, {"text": "/live"}, {"text": "/reset_day"}],
-    [{"text": "/stake 10"}, {"text": "/stake 25"}, {"text": "/stake 50"}, {"text": "/stake 100"}],
+    [{"text": "/stake 1"}, {"text": "/stake 5"}, {"text": "/stake 10"}, {"text": "/stake 25"}],
+    [{"text": "/stake 50"}, {"text": "/stake 100"}],
+
 ], "resize_keyboard": True}
 KIND_LABEL = {
     "FCB": "FCB breakout", "pole": "Pole continuation",
